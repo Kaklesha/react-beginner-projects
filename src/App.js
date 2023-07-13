@@ -3,16 +3,22 @@ import { Block } from './Block';
 import './index.scss';
 
 function App() {
-  const [fromCurrency,setFromCurrency]=React.useState('RUS') 
-  const [toCurrency,setToCurrency]=React.useState('USD') 
-const [rates, setRates] = React.useState({});
+  const [fromCurrency,setFromCurrency]=React.useState('RUS') ;
+  const [toCurrency,setToCurrency]=React.useState('USD') ;
+  const [fromPrice,setFromPrice]=React.useState(0) ;
+  const [toPrice,setToPrice]=React.useState(1) ;
+  const ratesRef=React.useRef({});
+
+ // const [rates, setRates] = React.useState({});
 
 React.useEffect(()=>{
   fetch('https://www.cbr-xml-daily.ru/latest.js')
   .then((res)=>res.json())
   .then((json)=>{
-    setRates(json.rates);
-    console.log(json.rates);
+    // setRates(json.rates);
+    // console.log(json.rates);
+    ratesRef.current={...json.rates, 'RUB':1};
+    onChangeToPrice(1);
   })
   .catch((err)=>{
     console.warn(err);
@@ -20,10 +26,48 @@ React.useEffect(()=>{
   });
 },[]);
 
+const onChangeFromPrice=(value)=>{
+
+  const price = value / ratesRef.current[fromCurrency];
+
+  const result = price * ratesRef.current[toCurrency];
+
+  setToPrice(result.toFixed(3));
+
+  setFromPrice(value);
+}
+
+const onChangeToPrice=(value)=>{
+
+  const result=(ratesRef.current[fromCurrency]/ ratesRef.current[toCurrency])*value;
+
+  setFromPrice(result.toFixed(3));
+
+  setToPrice(value);
+
+}
+
+React.useEffect(()=>{
+  onChangeFromPrice(fromPrice);
+},[fromCurrency])
+
+React.useEffect(()=>{
+  onChangeToPrice(toPrice);
+},[toCurrency])
+
+
   return (
     <div className="App">
-      <Block value={0} currency={fromCurrency} onChangeCurrency={setFromCurrency} />
-      <Block value={0} currency={toCurrency} onChangeCurrency={setToCurrency} />
+      <Block value={fromPrice} 
+      currency={fromCurrency} 
+      onChangeCurrency={setFromCurrency} 
+      onChangeValue={onChangeFromPrice}
+      />
+      <Block value={toPrice} 
+      currency={toCurrency} 
+      onChangeCurrency={setToCurrency}
+      onChangeValue={onChangeToPrice}
+      />
      
     </div>
   );
