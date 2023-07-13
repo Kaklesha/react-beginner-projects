@@ -48,7 +48,7 @@ const onClickSendInvites=()=>{
     <div className="App">
 
       {
-        success?<Success />:
+        success?<Success count={invites.length} />:
       <Users 
       onChangeSearchValue={onChangeSearchValue}
       searchValue={searchValue}
